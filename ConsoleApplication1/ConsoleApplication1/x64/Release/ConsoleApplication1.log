@@ -1,0 +1,6 @@
+﻿  main.cpp
+e:\实验\程序\consoleapplication1\consoleapplication1\func.h(74): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+main.cpp(54): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+  正在生成代码
+  已完成代码的生成
+  ConsoleApplication1.vcxproj -> E:\实验\程序\ConsoleApplication1\x64\Release\ConsoleApplication1.exe
