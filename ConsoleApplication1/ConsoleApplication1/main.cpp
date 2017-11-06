@@ -44,7 +44,7 @@ void init(VideoCapture& capture) {
 vector<Rect> getRects(const Mat& _img, int box_rows, int box_cols);
 
 int main() {
-	string videoName = "E:\\œ∫\\œ∫\\15.mp4";
+	string videoName = "E:\\lab\\program\\xia\\xia\\15.mp4";
 	VideoCapture capture(videoName);   //∂¡ ”∆µ
 	if (!capture.isOpened()) {
 		cerr << "Load Video Failed!\n";
