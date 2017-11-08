@@ -75,8 +75,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>F:\Program Files\opencv\build\include;F:\Program Files\opencv\build\include\opencv;F:\Program Files\opencv\build\include\opencv2;$(IncludePath)</IncludePath>
-    <LibraryPath>F:\Program Files\opencv\build\x64\vc14\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>F:\Program Files (x86)\opencv\build\include;F:\Program Files (x86)\opencv\build\include\opencv;F:\Program Files (x86)\opencv\build\include\opencv2;$(IncludePath)</IncludePath>
+    <LibraryPath>F:\Program Files (x86)\opencv\build\x64\vc14\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -112,7 +112,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opencv_world320d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_world331d.lib;opencv_world331.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -156,6 +156,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="func.h" />
+    <ClInclude Include="func2.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="svm.h" />
   </ItemGroup>

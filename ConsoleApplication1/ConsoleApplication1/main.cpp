@@ -9,6 +9,7 @@
 #include<vector>
 #include<algorithm>
 #include"func.h"
+#include"func2.h"
 using namespace cv;
 using namespace std;
 
@@ -42,6 +43,7 @@ void init(VideoCapture& capture) {
 
 //对每一帧，计算这一帧中每一个格子中虾的外接矩形
 vector<Rect> getRects(const Mat& _img, int box_rows, int box_cols);
+vector<Rect> getRects(const Mat& _img);	//直接计算所有外接矩形
 
 int main() {
 	string videoName = "E:\\lab\\program\\xia\\xia\\15.mp4";
@@ -73,6 +75,7 @@ int main() {
 
 
 			vector<Rect> rects = getRects(currentFrame, box_rows, box_cols);    //各只虾的外接矩形框
+			//vector<Rect> rects = getRects(currentFrame);
 			for (size_t i = 0; i < rects.size(); ++i) {
 				if (rects[i].area() == 0)
 					continue;
@@ -179,6 +182,52 @@ vector<Rect> getRects(const Mat& _img, int box_rows, int box_cols) {
 			kk++;
 		}
 	}
+	imshow(WIN2, img);
+	return result;
+}
+
+vector<Rect> getRects(const Mat& _img) {
+	//确保为灰度图
+	Mat img = _img.clone();
+	if (_img.channels() == 3)
+		cvtColor(_img, img, CV_BGR2GRAY);
+	Mat ele = getStructuringElement(MORPH_RECT, Size(3, 3));
+	vector<Rect> result;
+	//int kk = 0;
+	threshold(img, img, 0, 255, THRESH_BINARY + THRESH_OTSU);
+	RemoveSmallRegion2(img, img, 20, 1);
+	vector<vector<Point> >contours;
+	findContours(img, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+	for (int i = 0;i < contours.size();++i) {
+		Rect rect = boundingRect(contours[i]);
+		result.push_back(rect);
+	}
+	/*int width = _img.cols / box_cols;   //每只虾的方框的宽度以及高度
+	int height = _img.rows / box_rows;
+	for (int i = 0; i < box_rows; ++i) {
+		for (int j = 0; j < box_cols; ++j) {
+			Rect temp(j*width, i*height, width, height);
+			Mat roi = img(temp); //当前的框
+			threshold(roi, roi, 0, 255, THRESH_BINARY + THRESH_OTSU);
+			morphologyEx(roi, roi, MORPH_OPEN, ele);  //
+			vector<vector<Point> >contours;         //查找轮廓
+			findContours(roi.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+			vector<Rect> goodRects;
+			for (size_t k = 0; k < contours.size(); ++k) {
+				Rect rect = boundingRect(contours[k]);
+				if (valid(rect, width, height)) {
+					rect.x += temp.x;
+					rect.y += temp.y;
+					goodRects.push_back(rect);
+				}
+			}
+			if (goodRects.size() != 0) {
+				sort(goodRects.begin(), goodRects.end(), cmp);
+				result[kk] = goodRects[0];
+			}
+			kk++;
+		}
+	}*/
 	imshow(WIN2, img);
 	return result;
 }
