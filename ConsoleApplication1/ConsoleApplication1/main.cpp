@@ -18,7 +18,7 @@ Mat currentFrame;
 const string WIN1 = "Input";
 const string WIN2 = "Fore";
 int box_cols = 4, box_rows = 3;   //格子的行数和列数
-vector<int> status;  //记录每只虾已经连续被判定为死亡状态的帧数
+vector<int> status(100,0);  //记录每只虾已经连续被判定为死亡状态的帧数
 int min_threshold = 1;       //超过died_min分钟连续保持死亡状态的虾，则判定为死亡
 int dead_counts;           //判定为死亡需要经过的帧数
 						   //虾死亡判定类
@@ -74,8 +74,8 @@ int main() {
 			currentFrame = currentFrame(initRect).clone();              //取ROI
 
 
-			vector<Rect> rects = getRects(currentFrame, box_rows, box_cols);    //各只虾的外接矩形框
-			//vector<Rect> rects = getRects(currentFrame);
+			//vector<Rect> rects = getRects(currentFrame, box_rows, box_cols);    //各只虾的外接矩形框
+			vector<Rect> rects = getRects(currentFrame);
 			for (size_t i = 0; i < rects.size(); ++i) {
 				if (rects[i].area() == 0)
 					continue;
@@ -136,7 +136,7 @@ void onMouse(int event, int x, int y, int flags, void* param) {
 			cin >> box_cols;
 			cout << "输入格子的行数：";
 			cin >> box_rows;*/
-			status = vector<int >(box_cols*box_rows, 0);
+			//status = vector<int >(box_cols*box_rows, 0);
 			break;
 		default:
 			break;
@@ -195,39 +195,13 @@ vector<Rect> getRects(const Mat& _img) {
 	vector<Rect> result;
 	//int kk = 0;
 	threshold(img, img, 0, 255, THRESH_BINARY + THRESH_OTSU);
-	RemoveSmallRegion2(img, img, 20, 1);
+	RemoveSmallRegion2(img, img, 100, 1);
 	vector<vector<Point> >contours;
 	findContours(img, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 	for (int i = 0;i < contours.size();++i) {
 		Rect rect = boundingRect(contours[i]);
 		result.push_back(rect);
 	}
-	/*int width = _img.cols / box_cols;   //每只虾的方框的宽度以及高度
-	int height = _img.rows / box_rows;
-	for (int i = 0; i < box_rows; ++i) {
-		for (int j = 0; j < box_cols; ++j) {
-			Rect temp(j*width, i*height, width, height);
-			Mat roi = img(temp); //当前的框
-			threshold(roi, roi, 0, 255, THRESH_BINARY + THRESH_OTSU);
-			morphologyEx(roi, roi, MORPH_OPEN, ele);  //
-			vector<vector<Point> >contours;         //查找轮廓
-			findContours(roi.clone(), contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-			vector<Rect> goodRects;
-			for (size_t k = 0; k < contours.size(); ++k) {
-				Rect rect = boundingRect(contours[k]);
-				if (valid(rect, width, height)) {
-					rect.x += temp.x;
-					rect.y += temp.y;
-					goodRects.push_back(rect);
-				}
-			}
-			if (goodRects.size() != 0) {
-				sort(goodRects.begin(), goodRects.end(), cmp);
-				result[kk] = goodRects[0];
-			}
-			kk++;
-		}
-	}*/
 	imshow(WIN2, img);
 	return result;
 }
