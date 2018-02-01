@@ -3,8 +3,12 @@
 *   ③对每一帧的ROI图，分为平均的40个格子，然后再依次取这40个小图像，进行二值化后送进SVM进行判别，是直的姿势还是弯的姿势
 *   ④当某一只虾超过一定时间，一只保持弯的姿势时，就判定这只虾死了，否则就是活的。
 */
-#include<opencv2\opencv.hpp>
-#include<iostream>
+#include <opencv2\opencv.hpp>
+#include <opencv2\xfeatures2d.hpp>
+#include <opencv2\core\utility.hpp>
+#include <opencv2\tracker.hpp>
+#include <opencv2\highgui.hpp>
+#include <iostream>
 #include <iomanip>
 #include<vector>
 #include<algorithm>
@@ -12,7 +16,7 @@
 #include"func2.h"
 using namespace cv;
 using namespace std;
-
+/*
 //一些全局变量
 Mat currentFrame;
 const string WIN1 = "Input";
@@ -131,13 +135,13 @@ void onMouse(int event, int x, int y, int flags, void* param) {
 			}
 			rectangle(currentFrame, initRect, Scalar(0, 0, 255), 1);
 			imshow(WIN1, currentFrame);
-			useMouse = false;
+			useMouse = false;*/
 			/*cout << "输入格子的列数：";
 			cin >> box_cols;
 			cout << "输入格子的行数：";
 			cin >> box_rows;*/
 			//status = vector<int >(box_cols*box_rows, 0);
-			break;
+	/*		break;
 		default:
 			break;
 		}
@@ -205,6 +209,133 @@ vector<Rect> getRects(const Mat& _img) {
 	imshow(WIN2, img);
 	return result;
 }
+*/
 
 
+Mat src;
+vector<Rect>centers;
+bool selectObject = false;
+Point origin;//用于保存鼠标选择第一次单击时点的位置    
+Rect selection;//用于保存鼠标选择的矩形框    
+int trackObject = 0;
 
+/*-------------------------------
+
+函数功能 显示轨迹
+
+--------------------------------*/
+void displayTrajectory(Mat img, vector<Point> traj, Scalar s)
+{
+	if (!traj.empty())
+	{
+		for (size_t i = 0; i < traj.size() - 1; i++)
+		{
+			line(img, traj[i], traj[i + 1], s, 2, 8, 0);
+		}
+	}
+}
+/*-------------------------------
+
+鼠标控制
+
+--------------------------------*/
+void onMouse(int event, int x, int y, int, void*)
+{
+	if (selectObject)//只有当鼠标左键按下去时才有效，然后通过if里面代码就可以确定所选择的矩形区域selection了    
+	{
+		selection.x = MIN(x, origin.x);//矩形左上角顶点坐标    
+		selection.y = MIN(y, origin.y);
+		selection.width = std::abs(x - origin.x);//矩形宽    
+		selection.height = std::abs(y - origin.y);//矩形高    
+
+		selection &= Rect(0, 0, src.cols, src.rows);//用于确保所选的矩形区域在图片范围内  
+													//rectangle(src,selection,Scalar(0,0,255),2);  
+
+	}
+	switch (event)
+	{
+	case CV_EVENT_LBUTTONDOWN:
+		origin = Point(x, y);
+		selection = Rect(x, y, 0, 0);//鼠标刚按下去时初始化了一个矩形区域    
+		selectObject = true;
+		break;
+	case CV_EVENT_LBUTTONUP:
+		selectObject = false;
+		if (selection.width > 0 && selection.height > 0){
+			trackObject = -1;
+		}
+		break;
+	}
+}
+
+int main(int argc, char *argv[])
+{
+	namedWindow("tracker");
+	setMouseCallback("tracker", onMouse, 0);
+
+	vector<Ptr<Tracker>>trackers_i;
+	MultiTracker myTracker;
+	vector<vector<Point>> trajectorys;//轨迹记录  
+	int objectCounter = 0;
+	
+	string videoName = "E:\\lab\\program\\xia\\xia\\15.mp4";
+	VideoCapture cap(videoName);   //读视频
+	double fps = cap.get(CV_CAP_PROP_FPS);
+	cap.set(CV_CAP_PROP_POS_FRAMES, 6700);
+	//VideoCapture cap(0);//打开默认的摄像头    
+	//cap >> src;
+	
+	bool stop = false;
+	while (!stop)
+	{
+		cap >> src;
+
+		if (selectObject)
+		{
+			rectangle(src, selection, Scalar(0, 0, 255), 2, 8, 0);
+		}
+		if (trackObject < 0)
+		{
+			trackers_i.push_back(TrackerKCF::create());
+			myTracker.add(trackers_i[objectCounter],src, selection);
+			cout << selection.x << "," << selection.y << endl;
+			Point cen = Point(selection.x + selection.width / 2.0, selection.y + selection.height / 2.0);
+			trajectorys.resize(objectCounter + 1);
+			trajectorys[objectCounter].push_back(cen);//从[0]开始初始化轨迹起始点  
+
+			objectCounter++;//待跟踪目标个数加1  
+			trackObject = 1;
+
+		}
+		if (trackObject) 
+		{
+			vector<Rect2d> r;
+			myTracker.update(src,r);
+
+			//size_t s = r.size();
+			RNG rng;
+			
+			for (size_t i = 0; i < r.size(); i++)
+			{
+				Scalar scalar = Scalar(rng.uniform(0, 256), rng.uniform(0, 256), rng.uniform(0, 256));
+				rectangle(src, r[i], scalar, 2, 8, 0);
+				Point C = Point(r[i].x + r[i].width / 2.0, r[i].y + r[i].height / 2.0);
+				trajectorys[i].push_back(C);
+				displayTrajectory(src, trajectorys[i], scalar);
+				char name[10];
+				sprintf_s(name, "%zd", (i + 1));
+				putText(src, name, r[i].tl(), 3, 0.8, Scalar(0, 255, 255), 2, 8, false);
+				myTracker.update(src, r);
+			}
+
+		}
+		
+		imshow("tracker", src);
+		if (waitKey(30) == 27) //Esc键退出    
+		{
+			stop = true;
+		}
+		//cap >> src;
+	}
+	return 0;
+}

@@ -1,3 +1,5 @@
 ﻿  main.cpp
+e:\githouse\consoleapplication1\consoleapplication1\main.cpp(302): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
+e:\githouse\consoleapplication1\consoleapplication1\main.cpp(322): warning C4244: “参数”: 从“double”转换到“int”，可能丢失数据
   ConsoleApplication1.vcxproj -> E:\githouse\ConsoleApplication1\x64\Debug\ConsoleApplication1.exe
   ConsoleApplication1.vcxproj -> E:\githouse\ConsoleApplication1\x64\Debug\ConsoleApplication1.pdb (Full PDB)
